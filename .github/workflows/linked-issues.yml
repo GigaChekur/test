@@ -16,7 +16,7 @@ jobs:
 
       - name: Print has linked issues
         id: has-linked-issues
-        if: join(steps.get-issues.outputs.issues) != ''
+        if: steps.get-issues.outputs.issues != ''
         run: echo "Has linked issues"
 
       - name: Print has not linked issues and fail
