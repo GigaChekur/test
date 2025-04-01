@@ -1,7 +1,7 @@
 name: Has linked issues
 on:
   pull_request_target:
-   types: [edited, synchronize, opened, reopened]
+    types: [edited, synchronize, opened, reopened]
 
 jobs:
   check-linked-issues:
@@ -13,10 +13,14 @@ jobs:
         uses: mondeja/pr-linked-issues-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Print has linked issues
         id: has-linked-issues
         if: join(steps.get-issues.outputs.issues) != ''
         run: echo "Has linked issues"
-      - name: Print has not linked issues
+
+      - name: Print has not linked issues and fail
         if: steps.has-linked-issues.conclusion == 'skipped'
-        run: echo "Has not linked issues"
+        run: |
+          echo "Has not linked issues"
+          exit 1  # Forces the workflow to fail
