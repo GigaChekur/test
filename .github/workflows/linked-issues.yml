@@ -1,24 +1,18 @@
-name: Has linked issues
+name: PR
 
 on:
   pull_request:
-    types: [edited, synchronize, opened, reopened]
+    types: [opened, reopened, edited, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  check-linked-issues:
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
-      - name: Mock API Response (For Fork Testing)
-        run: |
-          echo '{ "issues": ["#123", "#456"] }' > mock_response.json
-          cat mock_response.json
-      
-      - name: Simulate Issue Check
-        run: |
-          ISSUES=$(cat mock_response.json | jq -r '.issues | join(", ")')
-          if [[ -z "$ISSUES" ]]; then
-            echo "❌ No linked issues found."
-            exit 1
-          else
-            echo "✅ Linked issues found: $ISSUES"
-          fi
+      - uses: ngerakines/pr-has-issues-action@v5
+        with:
+          prefixes: PLAT-,ENG-,IT-
