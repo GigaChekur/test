@@ -1,27 +1,25 @@
- - name: Find linked issues
-      id: find-linked-issues
-      uses: Ismoh-Games/find-linked-issues@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        repository: ${{ github.repository }}
-        pull-request-number: ${{ github.event.pull_request.number }}
-        pull-request-body: ${{ github.event.pull_request.body }}
-        copy-issues-labels: true # optional
-        include-closed-issues: true # optional
-    
-    # Use the output from the `find-linked-issues` step
-    - name: Use the output
-      run: |
-        echo "is-pull-request-linked-to-issues: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues }}"
-        echo "linked-issues: ${{ steps.find-linked-issues.outputs.linked-issues }}"
-        echo "pull-request-labels: ${{ steps.find-linked-issues.outputs.pull-request-labels }}"
+name: Has linked issues
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
 
-    - name: Conditional step
-      if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'True' }}
-      run: |
-        echo "Pull request is linked to issues"
-
-    - name: Another conditional step
-      if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'False' }}
-      run: |
-        exit 1
+jobs:
+  check-linked-issues:
+    name: Check if pull request has linked issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get issues
+        id: get-issues
+        uses: mondeja/pr-linked-issues-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Print has linked issues
+        id: has-linked-issues
+        if: join(steps.get-issues.outputs.issues) != ''
+        run: echo "Has linked issues"
+      - name: Print has not linked issues
+        if: steps.has-linked-issues.conclusion == 'skipped'
+        run: echo "Has not linked issues"
