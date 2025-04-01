@@ -1,10 +1,7 @@
 name: Has linked issues
 on:
   pull_request_target:
-    types:
-      - opened
-      - reopened
-      - edited
+   types: [edited, synchronize, opened, reopened]
 
 jobs:
   check-linked-issues:
