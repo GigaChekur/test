@@ -1,6 +1,6 @@
 name: Has linked issues
 on:
-  pull_request:
+  pull_request_target:
     types: [edited, synchronize, opened, reopened]
 
 jobs:
