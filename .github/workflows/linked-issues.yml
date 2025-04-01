@@ -1,34 +1,27 @@
-name: Check Linked Issues
-on:
-  pull_request:
-    types: [opened, edited, synchronize]
+ - name: Find linked issues
+      id: find-linked-issues
+      uses: Ismoh-Games/find-linked-issues@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.repository }}
+        pull-request-number: ${{ github.event.pull_request.number }}
+        pull-request-body: ${{ github.event.pull_request.body }}
+        copy-issues-labels: true # optional
+        include-closed-issues: true # optional
+    
+    # Use the output from the `find-linked-issues` step
+    - name: Use the output
+      run: |
+        echo "is-pull-request-linked-to-issues: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues }}"
+        echo "linked-issues: ${{ steps.find-linked-issues.outputs.linked-issues }}"
+        echo "pull-request-labels: ${{ steps.find-linked-issues.outputs.pull-request-labels }}"
 
-jobs:
-  check-linked-issues:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check for linked issues
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          QUERY='query ($prNumber: Int!, $repositoryName: String!, $repositoryOwner: String!) { 
-            repository(name: $repositoryName, owner: $repositoryOwner) { 
-              pullRequest(number: $prNumber) { 
-                closingIssuesReferences(first: 10) { 
-                  nodes { 
-                    number 
-                  } 
-                } 
-              } 
-            } 
-          }'
-          
-          ISSUES=$(gh api graphql -f query="$QUERY" -F prNumber=${{ github.event.pull_request.number }} -F repositoryName=${{ github.event.repository.name }} -F repositoryOwner=${{ github.event.repository.owner.login }} -q '.data.repository.pullRequest.closingIssuesReferences.nodes[] | .number')
+    - name: Conditional step
+      if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'True' }}
+      run: |
+        echo "Pull request is linked to issues"
 
-          if [ -z "$ISSUES" ]
-          then
-            echo "No issues linked to this PR. Please link an issue and try again."
-            exit 1
-          else
-            echo "Issue(s) linked: $ISSUES"
-          fi
+    - name: Another conditional step
+      if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'False' }}
+      run: |
+        exit 1
