@@ -1,26 +1,20 @@
-name: Has linked issues
+name: Check linked issues
+
 on:
   pull_request_target:
-    types: [edited, synchronize, opened, reopened]
+    types: [opened, edited, reopened, synchronize]
 
 jobs:
-  check-linked-issues:
-    name: Check if pull request has linked issues
+  check_pull_requests:
     runs-on: ubuntu-latest
+    name: Check linked issues
+    permissions:
+        issues: read
+        pull-requests: write
     steps:
-      - name: Get issues
-        id: get-issues
-        uses: mondeja/pr-linked-issues-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Print has linked issues
-        id: has-linked-issues
-        if: steps.get-issues.outputs.issues != ''
-        run: echo "Has linked issues"
-
-      - name: Print has not linked issues and fail
-        if: steps.has-linked-issues.conclusion == 'skipped'
-        run: |
-          echo "Has not linked issues"
-          exit 1
+      - uses: nearform-actions/github-action-check-linked-issues@v1
+        id: check-linked-issues
+        with:
+          exclude-branches: "release/**, dependabot/**"
+      - name: Get the output
+        run: echo "How many linked issues? ${{ steps.check-linked-issues.outputs.linked_issues_count }}"
