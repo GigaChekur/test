@@ -1,6 +1,7 @@
 name: Has linked issues
+
 on:
-  pull_request_target:
+  pull_request:
     types: [edited, synchronize, opened, reopened]
 
 jobs:
@@ -14,13 +15,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Print has linked issues
-        id: has-linked-issues
-        if: steps.get-issues.outputs.issues != ''
-        run: echo "Has linked issues"
+      - name: Check for linked issues
+        if: steps.get-issues.outputs.issues != '' && steps.get-issues.outputs.issues != null
+        run: echo "✅ Pull request is linked to issues"
 
-      - name: Print has not linked issues and fail
-        if: steps.has-linked-issues.conclusion == 'skipped'
+      - name: Fail if no linked issues
+        if: steps.get-issues.outputs.issues == '' || steps.get-issues.outputs.issues == null
         run: |
-          echo "Has not linked issues"
+          echo "❌ Pull request has no linked issues"
           exit 1
