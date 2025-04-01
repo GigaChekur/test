@@ -23,4 +23,4 @@ jobs:
         if: steps.has-linked-issues.conclusion == 'skipped'
         run: |
           echo "Has not linked issues"
-          exit 1  # Forces the workflow to fail
+          exit 1
